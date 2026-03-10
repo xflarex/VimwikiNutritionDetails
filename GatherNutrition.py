@@ -1,4 +1,5 @@
-filename = "Roasted Broccoli & Cauliflower Rice Bowl.wiki"
+#filename = "Roasted Broccoli & Cauliflower Rice Bowl.wiki"
+filename = "Rice Bowl.wiki"
 inputFile = open(filename, "r+")
 tempFile = inputFile.readlines()
 
@@ -16,6 +17,8 @@ recipeIngredientsList = []
 quantityLine = []
 infoLine = []
 
+searchAlias = "asdf"
+
 # Load ingredient name list
 def loadNameList():
     count = 0
@@ -28,25 +31,26 @@ def loadNameList():
             searchList.append(eval(splitLine[2]))
 
             count += 1
-            #if count > 2000:
-                #break
         else:
             ready = True
 
 # ", frozen" needs added back to search
 def is_frozen(isItFrozen):
     if "(frozen)" in isItFrozen:
-        removeFrozen = isItFrozen.split("(")
-        return removeFrozen[0]
+        return True
     else:
-        removeNewLine = isItFrozen.split("\n")
-        return removeNewLine[0]
+        return False
+
+def remove_frozen(frozen):
+        removeFrozen = frozen.split("(")
+        find_ingredient_by_alias(removeFrozen[0])
 
 def load_recipe_ingredients():
     for tempLine in tempFile:
         tempString = tempLine.split(", ")
 
-        ingredient = is_frozen(tempString[1])
+        #ingredient = is_frozen(tempString[1])
+        ingredient = tempString[1]
         ingredient = ingredient.strip()
         ingredient = ingredient.lower()
         recipeIngredientsList.append(ingredient)
@@ -61,9 +65,6 @@ def find_ingredient_by_alias(ingredient):
         splitAlias = alias.split(",")
         if ingredient == splitAlias[0]:
             found = True
-            print("Found alias: ", splitAlias[1])
-
-            print(splitAlias[0])
             show_info(int(splitAlias[1]))
             show_quantity(int(splitAlias[1]))
     if found == False:
@@ -77,10 +78,8 @@ def find_ingredient_by_name(ingredient):
 
     for name in nameList:
         if ingredient == name:
-            print("Found", count)
             found = True
 
-            print(ingredient)
             show_info(int(count))
             show_quantity(int(count))
         count += 1
@@ -99,7 +98,6 @@ def find_ingredient_by_search_term(ingredient):
                 print("Found by search term", count)
                 found = True
 
-                print(ingredient)
                 show_info(int(count))
                 show_quantity(int(count))
             count += 1
@@ -127,26 +125,29 @@ def find_ingredient_by_name_subsearch(ingredient):
     if found == True:
         n = 0
         while n < len(tempNameList):
-            print(n, ": ", tempNameCount[n], ": ", tempNameList[n])
             n += 1
 
         x = input("Choose the correct ingredient:")
-        aliasFile.write(ingredient)
+        aliasFile.write(searchAlias)
         aliasFile.write(",")
         aliasFile.write(str(tempNameCount[int(x)]))
         aliasFile.write("\n")
         aliasFile.close()
 
-        print(ingredient)
         show_info(tempNameCount[int(x)])
         show_quantity(tempNameCount[int(x)])
     else:
-        print("Error: No results found")
+        if is_frozen(ingredient) == True:
+            remove_frozen(ingredient)
+        else:
+            print("Error: No results found")
 
 def find_all_ingredients_in_recipe(recipe):
     for ingredient in recipe:
-
-        find_ingredient_by_alias(ingredient)
+        print("\ningredient in recipe: ", ingredient)
+        global searchAlias
+        searchAlias = ingredient
+        find_ingredient_by_alias(searchAlias)
 
 def load_info_and_quantity():
     ready = False
@@ -170,8 +171,3 @@ load_info_and_quantity()
 load_recipe_ingredients()
 
 find_all_ingredients_in_recipe(recipeIngredientsList)
-#for name in nameList:
-    #print(name)
-#print(searchList)
-
-#print(searchList[35286])
