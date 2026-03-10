@@ -6,12 +6,15 @@ nutritionFile = open("opennutrition.tsv", "r+")
 nutFile = nutritionFile.readlines()
 
 aliasFile = open("aliases", "a")  
-
+aliasFile.close()
 
 nameList = []
 searchList = []
 
 recipeIngredientsList = []
+
+quantityLine = []
+infoLine = []
 
 # Load ingredient name list
 def loadNameList():
@@ -30,6 +33,7 @@ def loadNameList():
         else:
             ready = True
 
+# ", frozen" needs added back to search
 def is_frozen(isItFrozen):
     if "(frozen)" in isItFrozen:
         removeFrozen = isItFrozen.split("(")
@@ -47,8 +51,24 @@ def load_recipe_ingredients():
         ingredient = ingredient.lower()
         recipeIngredientsList.append(ingredient)
 
-def find_ingredient_by_alias():
-    aliasFile.readlines()
+def find_ingredient_by_alias(ingredient):
+    found = False
+    aliasFile = open("aliases", "r")  
+    aliasList = aliasFile.readlines()
+    aliasFile.close()
+
+    for alias in aliasList:
+        splitAlias = alias.split(",")
+        if ingredient == splitAlias[0]:
+            found = True
+            print("Found alias: ", splitAlias[1])
+
+            print(splitAlias[0])
+            show_info(int(splitAlias[1]))
+            show_quantity(int(splitAlias[1]))
+    if found == False:
+        find_ingredient_by_name(ingredient)
+            
 
 def find_ingredient_by_name(ingredient):
     count = 0
@@ -59,6 +79,10 @@ def find_ingredient_by_name(ingredient):
         if ingredient == name:
             print("Found", count)
             found = True
+
+            print(ingredient)
+            show_info(int(count))
+            show_quantity(int(count))
         count += 1
 
     if found == False:
@@ -74,6 +98,10 @@ def find_ingredient_by_search_term(ingredient):
             if ingredient == name:
                 print("Found by search term", count)
                 found = True
+
+                print(ingredient)
+                show_info(int(count))
+                show_quantity(int(count))
             count += 1
 
     if found == False:
@@ -86,6 +114,8 @@ def find_ingredient_by_name_subsearch(ingredient):
     ingredient = ingredient.strip()
     tempNameList = []
     tempNameCount = []
+
+    aliasFile = open("aliases", "a")  
 
     for name in nameList:
         if name.find(ingredient) != -1:
@@ -105,15 +135,38 @@ def find_ingredient_by_name_subsearch(ingredient):
         aliasFile.write(",")
         aliasFile.write(str(tempNameCount[int(x)]))
         aliasFile.write("\n")
+        aliasFile.close()
+
+        print(ingredient)
+        show_info(tempNameCount[int(x)])
+        show_quantity(tempNameCount[int(x)])
     else:
         print("Error: No results found")
 
 def find_all_ingredients_in_recipe(recipe):
     for ingredient in recipe:
 
-        find_ingredient_by_name(ingredient)
+        find_ingredient_by_alias(ingredient)
+
+def load_info_and_quantity():
+    ready = False
+    for tempLine in nutFile:
+        if ready == True:
+            splitLine = tempLine.split("\t")
+            quantityLine.append(splitLine[6])
+            infoLine.append(splitLine[7])
+            #print(nameDict)
+        else:
+            ready = True
+
+def show_info(n):
+    print(infoLine[n])
+
+def show_quantity(n):
+    print(quantityLine[n])
 
 loadNameList()
+load_info_and_quantity()
 load_recipe_ingredients()
 
 find_all_ingredients_in_recipe(recipeIngredientsList)
