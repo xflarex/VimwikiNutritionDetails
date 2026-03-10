@@ -1,12 +1,9 @@
 nutritionFile = open("opennutrition.tsv", "r+")
 nutFile = nutritionFile.readlines()
 
-commonQuantity = 0.0
-metricQuantity = 0
 
 quantityDict = {}
 infoDict = {}
-nameDict = {}
 
 nameList = []
 searchList = []
@@ -17,12 +14,9 @@ for tempLine in nutFile:
     if ready == True:
         splitLine = tempLine.split("\t")
         quantityDict.update(eval(splitLine[6]))
-        #infoDict.update(eval(splitLine[7]))
-        #nameDict = eval("{\"" + splitLine[1] + "\":{'SearchTerms':" + splitLine[2] + "}}")
-        #print(nameDict)
-        
+        infoDict.update(eval(splitLine[7]))
+
         nameList.append(splitLine[1])
-        searchList.append(eval(splitLine[2]))
 
         count += 1
         if count > 9:
@@ -30,14 +24,15 @@ for tempLine in nutFile:
     else:
         ready = True
 
-
-
-#print(nameDict["Oatmeal"]["SearchTerms"])
 print(nameList)
+print("\n")
+print(quantityDict)
 
-line = 0
-while line < len(nameList):
-    print(nameList[line])
-    print(searchList[line])
-    line += 1
+ingredient = 'white rice'
+ingredient = ingredient.title()
 
+count = 0
+for name in nameList:
+    if ingredient == name:
+        print("Found", count)
+    count += 1
