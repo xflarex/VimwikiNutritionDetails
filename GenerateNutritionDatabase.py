@@ -14,18 +14,27 @@ def load_name_list():
     for nut in nutFile:
         if ready == True:
             splitLine = nut.split("\t")
-            keyString = ('name',)
-            nameDict = dict.fromkeys(keyString,splitLine[1])
+            nameTerm = ('name',)
+            nameDict = dict.fromkeys(nameTerm,splitLine[1])
+            print(nameDict)
             searchTerm = ('searchTerm',)
             searchDict = dict.fromkeys(searchTerm,splitLine[2])
-            print(nameDict)
-            print(searchDict)
-            #serving, nutrient, label
-            #uniqueIDList.append(splitLine[0])
-            #nameList.append(splitLine[1].lower())
-            #searchList.append(eval(splitLine[2]))
-            for line in splitLine:
-                print("\n", line)
+            servingTerm = ('servingTerm',)
+            servingDict = dict.fromkeys(servingTerm,splitLine[6])
+            nutrientTerm = ('nutrientTerm',)
+            nutrientDict = dict.fromkeys(nutrientTerm,splitLine[7])
+            labelTerm = ('labelTerm',)
+            labelDict = dict.fromkeys(labelTerm,splitLine[8])
+
+            completeTerm = "('" + splitLine[0] + "',)"
+            completeTerm = eval(completeTerm)
+            #print(completeDict)
+            dictList = (nameDict, searchDict, servingDict, nutrientDict, labelDict)
+            completeDict.update(dict.fromkeys(completeTerm, dictList))
+            #print(completeDict)
+            for item in completeDict:
+                print("\n")
+                print(item)
 
             count += 1
             if count >= 10:
@@ -34,18 +43,5 @@ def load_name_list():
             ready = True
 
 load_name_list()
-
-#nestedKeys = ('uniqueID', 'name', 'searchTerm', 'quantity', 'ingredients', 'label')
-#nestedDict = dict.fromkeys(nestedKeys)
-#completeDict = dict.fromkeys(uniqueIDList, nestedDict)
+print(completeDict['fd_2dObzdqa6o2J'])
 #print(completeDict)
-#print(uniqueIDList)
-#print(nameList)
-
-#completeDict['fd_XSd7Te973XKX']['name'] = "broccoli"
-#print(completeDict['fd_XSd7Te973XKX']['name'])
-#print(completeDict)
-
-# Dict of unique ids and all others as single value
-# name : broccoli 
-# searchTerm : list of terms
