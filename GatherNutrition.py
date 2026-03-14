@@ -1,58 +1,46 @@
+from pathlib import Path
+from GenerateNutritionDatabase import generate_database
+
+database = generate_database()
+
 filename = "Roasted Broccoli & Cauliflower Rice Bowl.wiki"
-#filename = "Rice Bowl.wiki"
 inputFile = open(filename, "r+")
 tempFile = inputFile.readlines()
 
-nutritionFile = open("opennutrition.tsv", "r+")
-nutFile = nutritionFile.readlines()
-
-aliasFile = open("aliases", "a")  
-aliasFile.close()
-
-nameList = []
-searchList = []
-
-recipeIngredientsList = []
-recipeIngredientsQuantity = []
-recipeIngredientsQuantityType = []
-
-quantityLine = []
-infoLine = []
 idList = []
 
-nutrientDict = {}
+# Recreate as nested list or other sensible type
+recipeIngredientsList = []
+recipeIngredientsServingQuantity = []
+recipeIngredientsServingUnit = []
 
-searchAlias = "asdf"
-
-# Load ingredient name list
-def load_name_list():
-    count = 0
-    ready = False
-
-    for tempLine in nutFile:
-        if ready == True:
-            splitLine = tempLine.split("\t")
-            nameList.append(splitLine[1].lower())
-            searchList.append(eval(splitLine[2]))
-
-            count += 1
-        else:
-            ready = True
-
-def is_frozen(isItFrozen):
-    if "(frozen)" in isItFrozen:
-        return True
+def create_alias_file_if_it_does_not_exist():
+    aliasPath = Path("aliases")
+    if aliasPath.exists():
+        print("aliases file exists")
     else:
-        return False
+        print("aliases does not exist")
+        aliasFile = open("aliases", "a")  
+        aliasFile.close()
 
-def remove_frozen(frozen):
-    removeFrozen = frozen.split("(")
-    find_ingredient_by_alias(removeFrozen[0])
+def write_to_alias_file(ingredient, alias):
+    aliasFile = open("aliases", "a")
+    newAlias = ingredient + "," + alias + "\n"
+    print("Added to aliases:", newAlias)
+    aliasFile.write(newAlias)
+    aliasFile.close()
+
+def load_aliases_into_list():
+    aliasFile = open("aliases", "r")  
+    aliasList = aliasFile.readlines()
+    aliasFile.close()
+    return aliasList
 
 def load_recipe_ingredients():
-    for tempLine in tempFile:
-        tempString = tempLine.split(", ")
+    for line in tempFile:
+        tempString = line.split(", ")
 
+        print("tempString:", tempString)
         ingredient = tempString[1]
         ingredient = ingredient.strip()
         ingredient = ingredient.lower()
@@ -64,174 +52,115 @@ def load_recipe_ingredients():
         quantitySplit = quantity.split(" ")
 
         if tempString[0].lower() == "to taste":
-            recipeIngredientsQuantity.append(1)
-            recipeIngredientsQuantityType.append("to taste")
+            recipeIngredientsServingQuantity.append(1)
+            recipeIngredientsServingUnit.append("to taste")
         else:
-            recipeIngredientsQuantity.append(int(quantitySplit[0]))
-            recipeIngredientsQuantityType.append(quantitySplit[1])
+            recipeIngredientsServingQuantity.append(int(quantitySplit[0]))
+            recipeIngredientsServingUnit.append(quantitySplit[1])
 
 def find_ingredient_by_alias(ingredient):
     found = False
-    aliasFile = open("aliases", "r")  
-    aliasList = aliasFile.readlines()
-    aliasFile.close()
+    ingredient = ingredient.lower().strip()
+
+    aliasList = load_aliases_into_list()
 
     for alias in aliasList:
         splitAlias = alias.split(",")
         if ingredient == splitAlias[0]:
-            idList.append(int(splitAlias[1]))
             found = True
             print("Found by alias")
+            idList.append(splitAlias[1].strip())
+            print(idList)
 
-            show_info(int(splitAlias[1]))
-            show_quantity(int(splitAlias[1]))
     if found == False:
         find_ingredient_by_name(ingredient)
-            
+
 def find_ingredient_by_name(ingredient):
-    count = 0
     found = False
-    ingredient = ingredient.strip()
 
-    for name in nameList:
-        if ingredient == name:
-            idList.append(int(count))
-            found = True
-
-            show_info(int(count))
-            show_quantity(int(count))
-        count += 1
-
+    for line in database:
+        if found == False:
+            name = database[line]['name']
+            name = name.lower()
+            if name == ingredient:
+                found = True
+                print("Found by name")
+                idList.append(database[line])
+                write_to_alias_file(ingredient,line)
     if found == False:
         find_ingredient_by_search_term(ingredient)
 
 def find_ingredient_by_search_term(ingredient):
-    count = 0
     found = False
-    ingredient = ingredient.lower()
 
-    for searchTermList in searchList:
-        for name in searchTermList:
-            if ingredient == name:
-                idList.append(int(count))
-                print("Found", ingredient, "by search term", count)
+    for line in database:
+        searchList = database[line]['search']
+        searchList = eval(searchList)
+
+        for term in searchList:
+            if term == ingredient:
                 found = True
-
-                show_info(int(count))
-                show_quantity(int(count))
-            count += 1
+                print("Found by search")
+                idList.append(database[line])
+                write_to_alias_file(ingredient,line)
 
     if found == False:
-        find_ingredient_by_name_subsearch(ingredient)
-
-def find_ingredient_by_name_subsearch(ingredient):
-    count = 0
-    found = False
-    ingredient = ingredient.strip()
-    tempNameList = []
-    tempNameCount = []
-
-    aliasFile = open("aliases", "a")  
-
-    for name in nameList:
-        if name.find(ingredient) != -1:
-            tempNameList.append(name)
-            tempNameCount.append(count)
-            found = True
-        count += 1
-
-    if found == True:
-        n = 0
-        while n < len(tempNameList):
-            print(n,tempNameList[n])
-            n += 1
-
-        x = input("Choose the correct ingredient:")
-        idList.append(x)
-        aliasFile.write(searchAlias)
-        aliasFile.write(",")
-        aliasFile.write(str(tempNameCount[int(x)]))
-        aliasFile.write("\n")
-        aliasFile.close()
-
-        show_info(tempNameCount[int(x)])
-        show_quantity(tempNameCount[int(x)])
-    else:
         if is_frozen(ingredient) == True:
             remove_frozen(ingredient)
         else:
-            print("Error: No results found")
+            find_ingredient_by_name_search(ingredient)
 
-def find_all_ingredients_in_recipe(recipe):
-    for ingredient in recipe:
-        print("\ningredient in recipe: ", ingredient)
-        global searchAlias # Remove global
-        searchAlias = ingredient
-        find_ingredient_by_alias(searchAlias)
+# Fix frozen alias handling
+def is_frozen(isItFrozen):
+    if "(frozen)" in isItFrozen:
+        print("Identified as frozen")
+        return True
+    else:
+        return False
 
-def load_info_and_quantity():
-    ready = False
-    for tempLine in nutFile:
-        if ready == True:
-            splitLine = tempLine.split("\t")
-            quantityLine.append(splitLine[6])
-            infoLine.append(splitLine[7])
-        else:
-            ready = True
+def remove_frozen(frozen):
+    removeFrozen = frozen.split("(")
+    find_ingredient_by_alias(removeFrozen[0])
 
-def show_info(n):
-    print("infoLine:", infoLine[n])
-    #update_nutrients(eval(infoLine[n]), eval(quantityLine[n]))
+def find_ingredient_by_name_search(ingredient):
+    found = False
+    ingredient = ingredient.strip()
+    print("ingredient:", ingredient)
+    foundList = []
+    foundIDList = []
 
-def show_quantity(n):
-    print("quantityLine[n]")
-    print(quantityLine[n])
+    for line in database:
+        name = database[line]['name']
+        name = name.lower()
 
-# Needs rebuilt run at the end
-def update_nutrients(nutrients, quantity):
-    print("\n\t\tquantity:", quantity)
-    for nutrient in nutrients:
-        if nutrient not in nutrientDict.keys():
-            tempNutrient = "{'" + nutrient + "':" + str(nutrients[nutrient]) + "}"
-            nutrientDict.update(eval(tempNutrient))
+        if name.find(ingredient) != -1:
+            found = True
+            print("Found by name search")
+            foundList.append(name)
+            foundIDList.append(line)
+    n = 0
+    for potentialIngredient in foundList:
+        print(n,potentialIngredient)
+        n += 1
 
-            #if quantity["common"]["unit"] == 
-        else:
-            nutrientDict[nutrient] = nutrientDict[nutrient] + nutrients[nutrient]
+    x = input("Choose the correct ingredient:")
+    x = int(x)
+    idList.append(foundIDList[x])
+    write_to_alias_file(ingredient,foundIDList[x])
 
-def update_nutrients_new():
-    for id in idList:
-        tempID = int(id)
-        print(nameList[tempID])
-        show_quantity(tempID)
-    print("\n\n")
+def get_ids_of_all_ingredients():
+    for ingredient in recipeIngredientsList:
+        find_ingredient_by_alias(ingredient)
 
-def list_nutrients(nutrients):
-    for nutrient in nutrients:
-        print(nutrient + ":", nutrients.get(nutrient))
+create_alias_file_if_it_does_not_exist()
 
-def list_all_quantities():
-    tempQuantity = []
-    for quantity in quantityLine:
-        tempDict = eval(quantity)
-        if tempDict['metric']['unit'] not in tempQuantity:
-            tempQuantity.append(tempDict['metric']['unit'])
-    for temp in tempQuantity:
-        print(temp)
-
-load_name_list()
-load_info_and_quantity()
+#testIngredient = 'medium-grain white rice'
+testIngredient = 'Black Rice'
+#testIngredient = 'White Rice (frozen)'
+#find_ingredient_by_alias(testIngredient)
 load_recipe_ingredients()
+get_ids_of_all_ingredients()
 
-find_all_ingredients_in_recipe(recipeIngredientsList)
-
-print("\n\n")
-#list_nutrients(nutrientDict)
-#list_all_quantities()
-
-print(recipeIngredientsList)
-print(recipeIngredientsQuantity)
-print(recipeIngredientsQuantityType)
-print(idList)
-
-update_nutrients_new()
+for ingredient in idList:
+    print(ingredient)
+    #print(database[ingredient])
