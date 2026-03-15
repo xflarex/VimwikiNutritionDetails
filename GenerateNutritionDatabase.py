@@ -16,7 +16,8 @@ def generate_database():
             searchTerm = ('search',)
             searchDict = dict.fromkeys(searchTerm,splitLine[2])
             servingTerm = ('serving',)
-            servingDict = dict.fromkeys(servingTerm,splitLine[6])
+            tempDict = eval(splitLine[6])
+            servingDict = dict.fromkeys(servingTerm,tempDict)
             nutrientTerm = ('nutrient',)
             nutrientDict = dict.fromkeys(nutrientTerm,splitLine[7])
             labelTerm = ('label',)
@@ -38,6 +39,3 @@ def generate_database():
             ready = True
     return finalDict
 
-#returnDict = generate_database()
-#print(returnDict['fd_zZmQBPvS5qfL']['name'])
-#print(returnDict['fd_zZmQBPvS5qfL']['nutrient'])
