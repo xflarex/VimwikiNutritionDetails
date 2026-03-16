@@ -20,7 +20,8 @@ def generate_nutrition_database():
             tempDict = eval(splitLine[6])
             servingDict = dict.fromkeys(servingTerm,tempDict)
             nutrientTerm = ('nutrient',)
-            nutrientDict = dict.fromkeys(nutrientTerm,splitLine[7])
+            tempDict = eval(splitLine[7])
+            nutrientDict = dict.fromkeys(nutrientTerm,tempDict)
 
             # Prep for use in dict.fromkeys
             termList = (splitLine[0],)
@@ -51,17 +52,17 @@ def generate_recipe_database(recipe):
 
         nameTerm = "(\'" + splitLine[1].strip() + "\'),"
         nameTerm = eval(nameTerm)
-        servingTerm = ('serving',)
+        unitTerm = ('unit',)
         quantityTerm = ('quantity',)
 
-        servingDict = dict.fromkeys(servingTerm,servingSplit[1].strip())
+        unitDict = dict.fromkeys(unitTerm,servingSplit[1].strip())
         quantityDict = dict.fromkeys(quantityTerm,int(servingSplit[0]))
 
-        completeServingDict = dict.fromkeys(nameTerm,servingDict)
+        completeUnitDict = dict.fromkeys(nameTerm,unitDict)
         completeQuantityDict = dict.fromkeys(nameTerm,quantityDict)
         
         combinedDict = {}
-        combinedDict.update(servingDict)
+        combinedDict.update(unitDict)
         combinedDict.update(quantityDict)
         recipeDict.update(dict.fromkeys(nameTerm,combinedDict))
     return recipeDict

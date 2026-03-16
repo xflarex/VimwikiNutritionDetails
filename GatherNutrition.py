@@ -1,11 +1,12 @@
 from pathlib import Path
-from GenerateNutritionDatabase import generate_database
+from GenerateDatabases import *
 
-database = generate_database()
+database = generate_nutrition_database()
 
 filename = "Roasted Broccoli & Cauliflower Rice Bowl.wiki"
 inputFile = open(filename, "r+")
 tempFile = inputFile.readlines()
+recipeDict = generate_recipe_database(tempFile)
 
 idList = []
 idDict = {}
@@ -65,24 +66,21 @@ def load_recipe_ingredients():
         quantitySplit = quantity.split(" ")
 
         if tempString[0].lower() == "to taste":
-            recipeIngredientsServingQuantity.append(1)
             tempQuantityValue = 1
-            recipeIngredientsServingUnit.append("to taste")
             tempUnitValue = "to taste"
         else:
-            recipeIngredientsServingQuantity.append(int(quantitySplit[0]))
             tempQuantityValue = quantitySplit[0]
-            recipeIngredientsServingUnit.append(quantitySplit[1])
             tempUnitValue = quantitySplit[1]
 
-        tList = ('quantity,')
-        tempQuantity = dict.fromkeys(tList,tempQuantityValue)
+        tempQuantity = dict.fromkeys(('quantity,'),tempQuantityValue)
         tempDict = dict.fromkeys(ingredient,tempQuantity)
         tempIDDict = {}
         tempIDDict.update(tempDict)
+        tempUnit = dict.fromkeys(('unit',),tempUnitValue)
 
-        tempUnit = dict.fromkeys(list('unit,'),tempUnitValue)
-        tempDict = dict.fromkeys(ingredient,tempUnit)
+        ingredientList = []
+        ingredientList.append(ingredient)
+        tempDict = dict.fromkeys((ingredient,),tempUnit)
         tempIDDict.update(tempDict)
     print(tempIDDict)
 
@@ -99,7 +97,9 @@ def find_ingredient_by_alias(ingredient):
             found = True
             print("Found by alias")
             idList.append(splitAlias[1].strip())
+            idDict.update(dict.fromkeys((splitAlias[1].strip(),),ingredient))
             print(idList)
+            print(idDict)
 
     if found == False:
         find_ingredient_by_name(ingredient)
@@ -122,6 +122,7 @@ def find_ingredient_by_name(ingredient):
                 found = True
                 print("Found by name")
                 idList.append(database[line])
+                idDict.update(dict.fromkeys((database[line],),ingredient))
                 write_to_alias_file(ingredient,line)
     if found == False:
         find_ingredient_by_search_term(ingredient)
@@ -139,6 +140,7 @@ def find_ingredient_by_search_term(ingredient):
                 found = True
                 print("Found by search")
                 idList.append(database[line])
+                idDict.update(dict.fromkeys((database[line],),ingredient))
                 write_to_alias_file(ingredient,line)
 
     if found == False:
@@ -154,6 +156,7 @@ def find_ingredient_by_search_term(ingredient):
                         found = True
                         print("Found by search term")
                         idList.append(database[line])
+                        idDict.update(dict.fromkeys((database[line],),ingredient))
                         write_to_alias_file(ingredient,line)
         else:
             find_ingredient_by_name_search(ingredient)
@@ -191,33 +194,49 @@ def find_ingredient_by_name_search(ingredient):
     x = input("Choose the correct ingredient:")
     x = int(x)
     idList.append(foundIDList[x])
+    idDict.update(dict.fromkeys((foundIDList[x],),ingredient))
     write_to_alias_file(ingredient,foundIDList[x])
 
 def get_ids_of_all_ingredients():
     for ingredient in recipeIngredientsList:
         find_ingredient_by_alias(ingredient)
 
-def update_serving_unit_list():
-    for ingredient in idList:
-        asdf = 0
-
-
 def calculate_serving(ingredient):
-    if recipeIngredientsServingUnit == database[ingredient]['serving']['common']['unit']:
-        print("Correct serving type")
+    if recipeDict[idDict[ingredient]]['unit'] == database[ingredient]['serving']['common']['unit']:
+        #print("Correct serving type: Common")
+        databaseQuantity = database[ingredient]['serving']['common']['quantity']
+        recipeQuantity = recipeDict[idDict[ingredient]]['quantity']
+        ratio = databaseQuantity / recipeQuantity
+        #print(databaseQuantity, "/", recipeQuantity, "=", ratio)
+        return ratio
+
+    elif recipeDict[idDict[ingredient]]['unit'] == database[ingredient]['serving']['metric']['unit']:
+        print("Correct serving type: Metric")
+
     else:
-        print(recipeIngredientsServingUnit[0], database[ingredient]['serving']['common']['unit'])
+        #print("Unknown serving type:", recipeDict[idDict[ingredient]]['unit'], recipeDict[idDict[ingredient]]['quantity'])
+        #print(recipeDict[idDict[ingredient]]['unit'], database[ingredient]['serving']['common']['unit'],database[ingredient]['serving']['metric']['unit'])
+        asdf = 0
 
 create_alias_file_if_it_does_not_exist()
 
 load_recipe_ingredients()
 get_ids_of_all_ingredients()
 
-for ingredient in idList:
-    calculate_serving(ingredient)
-    print(database[ingredient]['name'])
-    print(database[ingredient]['serving'])
-    #print(type(database[ingredient]['serving']))
-    print(database[ingredient]['serving']['common']['unit'])
-    print(database[ingredient]['serving']['common']['quantity'])
-    #print(database[ingredient]['nutrient'])
+print(recipeDict)
+
+calculatedNutrientDict = {}
+for ingredient in idDict:
+    calculatedRatio = calculate_serving(ingredient)
+    if calculatedRatio == None:
+        calculatedRatio = 1
+    print(idDict[ingredient],calculatedRatio)
+    for nutrient in database[ingredient]['nutrient']:
+        tempValue = database[ingredient]['nutrient'][nutrient] * calculatedRatio
+        print("tempValue:",tempValue)
+        print(nutrient)
+        calculatedNutrientDict.update(dict.fromkeys((nutrient,), tempValue))
+        # dictionary.get(keyname, value)
+
+print(calculatedNutrientDict)
+
