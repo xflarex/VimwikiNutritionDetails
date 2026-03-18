@@ -67,3 +67,18 @@ def generate_recipe_database(recipe):
     return recipeDict
 
 
+
+def show_potential():
+    unitList = []
+    for ingredient in database:
+        #print(ingredient)
+        for unit in database[ingredient]['serving']:
+            tempUnit = database[ingredient]['serving']['metric']['unit']
+            print("tempUnit:",tempUnit)
+            if tempUnit not in unitList and len(tempUnit) < 5:
+                unitList.append(tempUnit)
+    for unit in unitList:
+        print(unit)
+
+database = generate_nutrition_database()
+show_potential()
