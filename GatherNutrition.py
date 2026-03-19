@@ -64,7 +64,7 @@ def find_ingredient_by_alias(ingredient):
             print(idDict)
 
     if found == False:
-        find_ingredient_by_name(ingredient)
+        find_ingredient_by_name_search(ingredient)
 
 def find_ingredient_by_name(ingredient):
     print("Searching by name")
@@ -163,110 +163,52 @@ def convert_x_to_y(ingredient,x,y):
     recipeQuantity = recipeDict[idDict[ingredient]]['quantity']
     databaseQuantity = database[ingredient]['serving']['common']['quantity']
     joinedString = x + "_to_" + y + "(recipeQuantity)"
-    ratio = databaseQuantity / eval(joinedString)
+    ratio = eval(joinedString) / databaseQuantity 
+    print("\n=========")
+    print(ingredient + ":", recipeQuantity, "/", databaseQuantity, "=", ratio)
     return ratio
 
 def is_it_metric(unit):
     if unit == ("g" or "ml" or "grm" or "mg" or "iu" or "IU"):
         print("It's metric")
-        abbr = identify_abbreviation(unit)
-        return abbr
+        return True
     else:
-        return None
+        return False
 
 def calculate_serving(ingredient):
-    tempUnit = recipeDict[idDict[ingredient]]['unit']
-    print("tempUnit::",tempUnit)
-    dataUnit = database[ingredient]['serving']['common']['unit']
-    if is_it_metric(tempUnit) != None:
-        print(convert_x_to_y(ingredient,tempUnit,dataUnit))
-    if recipeDict[idDict[ingredient]]['unit'] == database[ingredient]['serving']['common']['unit']:
-        print("Correct serving type: Common")
+    print("\ningredient:",database[ingredient])
+    ingredientUnit = recipeDict[idDict[ingredient]]['unit']
+    dataUnit = ""
+    if is_it_metric(ingredientUnit) == True:
+        dataUnit = database[ingredient]['serving']['metric']['unit']
+    else:
+        dataUnit = database[ingredient]['serving']['common']['unit']
+
+    print(ingredientUnit,dataUnit)
+    if ingredientUnit == dataUnit:
+        print("Same serving type found")
         databaseQuantity = database[ingredient]['serving']['common']['quantity']
         recipeQuantity = recipeDict[idDict[ingredient]]['quantity']
-        ratio = databaseQuantity / recipeQuantity
-        print(databaseQuantity, "/", recipeQuantity, "=", ratio)
+        ratio = recipeQuantity / databaseQuantity 
+        print("\n=========")
+        print(ingredient + ":", recipeQuantity, "/", databaseQuantity, "=", ratio)
         return ratio
 
-    elif recipeDict[idDict[ingredient]]['unit'] == database[ingredient]['serving']['metric']['unit']:
-        print("Correct serving type: Metric")
-
+    # Convert ingredients to their proper name
+    ingredientUnit = identify_abbreviation(ingredientUnit)
+    if identify_abbreviation(dataUnit) != None:
+        dataUnit = identify_abbreviation(dataUnit)
     else:
-        abbr = str(recipeDict[idDict[ingredient]]['unit'])
-        print("Unknown serving type:", abbr, recipeDict[idDict[ingredient]]['quantity'])
-        print(abbr, database[ingredient]['serving']['common']['unit'],database[ingredient]['serving']['metric']['unit'])
-        commonUnit = str(database[ingredient]['serving']['common']['unit'])
-        metricUnit = str(database[ingredient]['serving']['metric']['unit'])
-        abbr = identify_abbreviation(abbr)
-        commonUnit = identify_abbreviation(commonUnit)
-        metricUnit = identify_abbreviation(metricUnit)
-        print("acm",abbr,commonUnit,metricUnit)
-        if abbr != "noMatch":
-            print(convert_x_to_y(ingredient,abbr,commonUnit))
-        match abbr:
-            case "tablespoon":
-                recipeQuantity = recipeDict[idDict[ingredient]]['quantity']
-                if commonUnit == "milliliter":
-                    print("Found ml")
-                    databaseQuantity = database[ingredient]['serving']['common']['quantity']
-                    tbs = "tablespoon"
-                    mm = "milliliter"
-                    ttm = tbs + "_to_" + mm + "(recipeQuantity)"
-                    ratio = databaseQuantity / eval(ttm)
-                    print("ratio:",ratio)
-                    return(ratio)
-                if metricUnit == "milliliter":
-                    databaseQuantity = database[ingredient]['serving']['metric']['quantity']
-                    ratio = databaseQuantity / tablespoon_to_milliliter(recipeQuantity)
-                    return(ratio)
-            case "teaspoon":
-                if abbr == commonUnit or abbr == metricUnit:
-                    print("Found", abbr)
-                recipeQuantity = recipeDict[idDict[ingredient]]['quantity']
-                if commonUnit == "milliliter":
-                    print("Found ml")
-                    databaseQuantity = database[ingredient]['serving']['common']['quantity']
-                    ratio = databaseQuantity / tablespoon_to_milliliter(recipeQuantity)
-                    return(ratio)
-                if metricUnit == "milliliter":
-                    databaseQuantity = database[ingredient]['serving']['metric']['quantity']
-                    ratio = databaseQuantity / tablespoon_to_milliliter(recipeQuantity)
-                    return(ratio)
-            case "cup":
-                if abbr == commonUnit or abbr == metricUnit:
-                    print("Found", abbr)
-            case "pint":
-                if abbr == commonUnit or abbr == metricUnit:
-                    print("Found", abbr)
-            case "quart":
-                if abbr == commonUnit or abbr == metricUnit:
-                    print("Found", abbr)
-            case "gallon":
-                if abbr == commonUnit or abbr == metricUnit:
-                    print("Found", abbr)
-            case "ounce":
-                if abbr == commonUnit or abbr == metricUnit:
-                    print("Found", abbr)
-            case "fluidOunce":
-                if abbr == commonUnit or abbr == metricUnit:
-                    print("Found", abbr)
-            case "pound":
-                if abbr == commonUnit or abbr == metricUnit:
-                    print("Found", abbr)
-            case "milliliter":
-                if abbr == commonUnit:
-                    print("Found", abbr)
-            case "gram":
-                if abbr == commonUnit or abbr == metricUnit:
-                    print("Found", abbr)
-            case "milligram":
-                if abbr == commonUnit or abbr == metricUnit:
-                    print("Found", abbr)
-            case "liter":
-                if abbr == commonUnit or abbr == metricUnit:
-                    print("Found", abbr)
-        print(commonUnit,metricUnit)
-        print("End match case")
+        print("dataUnit not matched")
+
+    print(identify_abbreviation(ingredientUnit))
+    print(identify_abbreviation(dataUnit))
+    if identify_abbreviation(ingredientUnit) != None and identify_abbreviation(dataUnit != None):
+        print("Converted:", convert_x_to_y(ingredient,ingredientUnit,dataUnit))
+        return convert_x_to_y(ingredient,ingredientUnit,dataUnit)
+    else:
+        print("Incompatible serving types")
+        return None
 
 def calculate_totals():
     for ingredient in idDict:

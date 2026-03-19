@@ -11,64 +11,66 @@ milliliterAbbr = {"Milliliter","milliliter","ml","mls","mlt","mlts"}
 gramAbbr = {"Gram","gram","g","gs","Grm","grm"}
 milligramAbbr = {"Milligram","milligram","mg"}
 literAbbr = {"Liter","liter","l"}
-poundAbbr = {"Pound","pound","lb","lbs"}
+
+objects = {"container","jar","can"}
 
 def identify_abbreviation(abbr):
+    #print("identify_abbreviation:", abbr, type(abbr))
     if abbr in teaspoonAbbr:
-        print("teaspoon")
+        print("teaspoon detected")
         return "teaspoon"
 
     elif abbr in tablespoonAbbr:
-        print("tablespoon")
+        print("tablespoon detected")
         return "tablespoon"
 
     elif abbr in cupAbbr:
-        print("cup")
+        print("cup detected")
         return "cup"
 
     elif abbr in pintAbbr:
-        print("pint")
+        print("pint detected")
         return "pint"
 
     elif abbr in quartAbbr:
-        print("quart")
+        print("quart detected")
         return "quart"
 
     elif abbr in gallonAbbr:
-        print("gallon")
+        print("gallon detected")
         return "gallon"
 
     elif abbr in ounceAbbr:
-        print("ounce")
+        print("ounce detected")
         return "ounce"
 
     elif abbr in fluidOunceAbbr:
-        print("fluidOunce")
+        print("fluidOunce detected")
         return "fluidOunce"
 
     elif abbr in poundAbbr:
-        print("pound")
+        print("pound detected")
         return "pound"
 
     elif abbr in milliliterAbbr:
-        print("milliliter")
+        print("milliliter detected")
         return "milliliter"
 
     elif abbr in gramAbbr:
-        print("gram")
+        print("gram detected")
         return "gram"
 
     elif abbr in milligramAbbr:
-        print("milligram")
+        print("milligram detected")
         return "milligram"
 
     elif abbr in literAbbr:
-        print("liter")
+        print("liter detected")
         return "liter"
 
     else:
         print("No match found")
-        return "noMatch"
+        return None
 
 def if_half(quantity):
     if quantity == "half":
@@ -77,34 +79,32 @@ def if_half(quantity):
 def teaspoon_to_tablespoon(teaspoon):
     return teaspoon * 3
 def teaspoon_to_milliliter(teaspoon):
-    return 5
+    return teaspoon * 5
 def teaspoon_to_cup(teaspoon):
-    return ounce / 48
+    return teaspoon / 48
 
 def tablespoon_to_teaspoon(tablespoon):
-    return tablespoon / 3
+    return tablespoon * 3
 def tablespoon_to_milliliter(tablespoon):
     return tablespoon * 15
 def tablespoon_to_fluid_ounce(tablespoon):
-    return tablespoon
+    return tablespoon / 2
 def tablespoons_to_cup(tablespoon):
     return ounce / 16
-def tablespoon_to_fluid_ounce(tablespoon):
-    return tablespoon / 2
 
 def milliliter_to_liter(milliliter):
-    return milliliter * 1000
+    return milliliter / 1000
 def milliliter_to_tablespoon(milliliters):
-    return milliliters * 15
+    return milliliters / 15
 def milliliters_to_cup(milliliters):
-    return ounce / 240
+    return millilters / 240
 def milliliter_to_teaspoon(milliter):
-    return milliliter * 5
+    return milliliter / 5
 
 def ounce_to_gram(ounce):
     return ounce * 29
-def ounce_to_fluid_tablespoon(ounce):
-    return tablespoon
+def tablespoon_to_fluid_ounce(tablespoon):
+    return tablespoon / 2
 def ounce_to_cup(ounce):
     return ounce / 8
 
@@ -117,8 +117,8 @@ def cup_to_tablespoons(cup):
     return cup * 16
 def cup_to_teaspoon(cup):
     return cup * 48
-def cup_to_pint(pint):
-    return pint / 2
+def cup_to_pint(cup):
+    return cup / 2
 
 def gram_to_ounce(gram):
     return gram / 29
