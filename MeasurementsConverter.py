@@ -12,7 +12,21 @@ gramAbbr = {"Gram","gram","g","gs","Grm","grm"}
 milligramAbbr = {"Milligram","milligram","mg"}
 literAbbr = {"Liter","liter","l"}
 
-objects = {"container","jar","can"}
+containers = {"container","jar","can"}
+
+#inputFile = open("containerAliases.csv", "r+")
+#containerAliasesFile = inputFile.readlines()
+#containerAliases = []
+
+def add_to_container_aliases_file(uniquiID,container):
+    pass
+
+def convert_known_objects(uniqueID,container):
+    pass
+    # Load objectAliasList
+    # Check if uniqueID is in the list
+    # Check if container matches
+    # Calculate quantity vs container alias's value
 
 def identify_abbreviation(abbr):
     #print("identify_abbreviation:", abbr, type(abbr))

@@ -1,7 +1,6 @@
 nutritionFile = open("opennutrition.tsv", "r+")
 nutFile = nutritionFile.readlines()
 
-
 def generate_nutrition_database():
     finalDict = {}
     ready = False
@@ -38,7 +37,6 @@ def generate_nutrition_database():
             ready = True
     return finalDict
 
-
 def generate_recipe_database(recipe):
     recipeDict = {}
 
@@ -66,5 +64,4 @@ def generate_recipe_database(recipe):
         combinedDict.update(quantityDict)
         recipeDict.update(dict.fromkeys(nameTerm,combinedDict))
     return recipeDict
-
 

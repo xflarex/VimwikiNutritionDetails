@@ -1,6 +1,6 @@
+from pathlib import Path
 from GenerateDatabases import *
 from MeasurementsConverter import *
-from FileManagement import *
 
 database = generate_nutrition_database()
 
@@ -14,6 +14,28 @@ calculatedNutrientDict = {}
 
 # Recreate as nested list or other sensible type
 recipeIngredientsList = []
+
+def create_alias_file_if_it_does_not_exist():
+    aliasPath = Path("aliases")
+    if aliasPath.exists():
+        print("aliases file exists")
+    else:
+        print("aliases does not exist")
+        aliasFile = open("aliases", "a")  
+        aliasFile.close()
+
+def write_to_alias_file(ingredient, alias):
+    aliasFile = open("aliases", "a")
+    newAlias = ingredient + "," + alias + "\n"
+    print("Added to aliases:", newAlias)
+    aliasFile.write(newAlias)
+    aliasFile.close()
+
+def load_aliases_into_list():
+    aliasFile = open("aliases", "r")  
+    aliasList = aliasFile.readlines()
+    aliasFile.close()
+    return aliasList
 
 def is_frozen(isItFrozen):
     if "(frozen)" in isItFrozen:
@@ -31,7 +53,7 @@ def find_ingredient_by_alias(ingredient):
     found = False
     ingredient = ingredient.lower().strip()
 
-    aliasList = load_file_into_list("aliases")
+    aliasList = load_aliases_into_list()
 
     for alias in aliasList:
         splitAlias = alias.split(",")
@@ -40,25 +62,35 @@ def find_ingredient_by_alias(ingredient):
             print("Found by alias")
             idDict.update(dict.fromkeys((splitAlias[1].strip(),),ingredient))
             print(idDict)
-    return found
+
+    if found == False:
+        find_ingredient_by_name_search(ingredient)
 
 def find_ingredient_by_name(ingredient):
     print("Searching by name")
     found = False
-    foundList = []
+
+    if is_frozen(ingredient) == True:
+        tempIngredient = remove_frozen(ingredient)
+        tempIngredient = tempIngredient.strip()
+    else:
+        tempIngredient = ingredient
 
     for line in database:
         if found == False:
-            name = database[line]['name'].lower()
-            if name == ingredient:
+            name = database[line]['name']
+            name = name.lower()
+            if name == tempIngredient:
                 found = True
                 print("Found by name")
-                foundList.append(name)
-    return foundList
+                idDict.update(dict.fromkeys((str(database[line]),),ingredient))
+                write_to_alias_file(ingredient,line)
+    if found == False:
+        find_ingredient_by_search_term(ingredient)
 
 def find_ingredient_by_search_term(ingredient):
     print("Searching by search term")
-    foundList = []
+    found = False
 
     for line in database:
         searchList = database[line]['search']
@@ -66,52 +98,66 @@ def find_ingredient_by_search_term(ingredient):
 
         for term in searchList:
             if term == ingredient:
-                print("Found by search term")
-                foundList.append(name)
-    return foundList
+                found = True
+                print("Found by search")
+                idDict.update(dict.fromkeys(str((database[line]),),ingredient))
+                write_to_alias_file(ingredient,line)
+
+    if found == False:
+        if is_frozen(ingredient) == True:
+            tempIngredient = remove_frozen(ingredient)
+            tempIngredient = tempIngredient.strip()
+            for line in database:
+                searchList = database[line]['search']
+                searchList = eval(searchList)
+
+                for term in searchList:
+                    if term == tempIngredient:
+                        found = True
+                        print("Found by search term")
+                        idDict.update(dict.fromkeys((str(database[line]),),ingredient))
+                        write_to_alias_file(ingredient,line)
+        else:
+            find_ingredient_by_name_search(ingredient)
+
+    if found == False:
+        find_ingredient_by_name_search(ingredient)
 
 def find_ingredient_by_name_search(ingredient):
     print("Searching by name search")
+    found = False
+    ingredient = ingredient.strip()
     foundList = []
+    foundIDList = []
+
+    if is_frozen(ingredient) == True:
+        tempIngredient = remove_frozen(ingredient)
+        tempIngredient = tempIngredient.strip()
+    else:
+        tempIngredient = ingredient
 
     for line in database:
-        name = database[line]['name'].lower()
+        name = database[line]['name']
+        name = name.lower()
 
-        if name.find(str(ingredient)) != -1:
+        if name.find(tempIngredient) != -1:
+            found = True
             print("Found by name search")
             foundList.append(name)
-    return foundList
+            foundIDList.append(line)
+    n = 0
+    for potentialIngredient in foundList:
+        print(n,potentialIngredient)
+        n += 1
 
-def display_potential_matches(ingredient):
-    if is_frozen(ingredient) == True:
-        tempIngredient = remove_frozen(ingredient).strip()
-    else:
-        tempIngredient = ingredient.strip
-
-    foundList = []
-    foundList.extend = find_ingredient_by_name(tempIngredient)
-    foundList.extend(find_ingredient_by_search_term(tempIngredient))
-    print("tempIngredient:",tempIngredient)
-    foundList.extend(find_ingredient_by_name_search(tempIngredient))
-
-    if len(foundList) > 1000:
-        for n in range(1000):
-            print(n+":",foundList[n])
-    else:
-        for n in range(len(foundList)):
-            print(n+":",foundList[n])
-        
-    userSelection = input("Choose the correct ingredient:")
-    userSelection = int(userSelection)
-    idDict.update(dict.fromkeys((foundList[userSelection],),ingredient))
-    add_to_alias_file(ingredient,foundList[userSelection])
+    x = input("Choose the correct ingredient:")
+    x = int(x)
+    idDict.update(dict.fromkeys((foundIDList[x],),ingredient))
+    write_to_alias_file(ingredient,foundIDList[x])
 
 def get_ids_of_all_ingredients():
     for ingredient in recipeDict:
-        aliasResult = find_ingredient_by_alias(ingredient)
-        if aliasResult == False:
-    idDict.update(dict.fromkeys((foundList[userSelection],),ingredient))
-    add_to_alias_file(ingredient,foundList[userSelection])
+        find_ingredient_by_alias(ingredient)
 
 def convert_x_to_y(ingredient,x,y):
     recipeQuantity = recipeDict[idDict[ingredient]]['quantity']
@@ -177,7 +223,7 @@ def calculate_totals():
                 calculatedValue = tempValue + int(calculatedNutrientDict.get(nutrient))
                 calculatedNutrientDict.update(dict.fromkeys((nutrient,), calculatedValue))
 
-create_file_if_it_does_not_exist("aliases")
+create_alias_file_if_it_does_not_exist()
 
 get_ids_of_all_ingredients()
 
